@@ -73,6 +73,23 @@ To use the API, you need to sign up on [Firecrawl](https://firecrawl.dev) and ge
 - [**Crawl**](#crawling): scrapes all the URLs of a web page and return content in LLM-ready format
 - [**Map**](#map-alpha): input a website and get all the website urls - extremely fast
 - [**Extract**](#extract): get structured data from single page, multiple pages or entire websites with AI.
+- [**Search**](#search): combines web search with scraping to return full page content for any query.
+
+### Search Provider Capabilities (New)
+
+Firecrawl now supports multiple search providers with intelligent fallback mechanisms:
+
+- **Multiple Search Providers**: Google, Brave Search API, DuckDuckGo, Serper, SearchAPI, and SearxNG
+- **Smart Provider Selection**: System automatically selects the best available provider based on API key availability
+- **Rate Limit Handling**: Exponential backoff retry mechanism (up to 3 retries with increasing delays)
+- **Google Failure Tracking**: After 5 rate limit errors within 30 minutes, system automatically switches to alternative providers
+- **Dynamic Fallback**: If selected provider fails, system immediately tries to fall back to other available providers
+
+To enable new search providers, add these environment variables:
+```
+BRAVE_SEARCH_API_KEY=your_api_key_here  # Get from https://brave.com/search/api/
+DUCKDUCKGO_ENABLED=true                 # No API key needed for DuckDuckGo
+```
 
 ### Powerful Capabilities
 - **LLM-ready formats**: markdown, structured data, screenshot, HTML, links, metadata

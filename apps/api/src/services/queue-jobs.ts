@@ -243,28 +243,37 @@ export async function addScrapeJobs(
 
 export function waitForJob<T = unknown>(
   jobId: string,
-  timeout: number,
+  timeout: number = 120000, // Increase default timeout to 2 minutes
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const start = Date.now();
+    // Use minimum timeout of 30 seconds
+    const actualTimeout = Math.max(timeout, 30000);
+    // Reduce polling frequency to 500ms to decrease Redis load
     const int = setInterval(async () => {
-      if (Date.now() >= start + timeout) {
+      if (Date.now() >= start + actualTimeout) {
         clearInterval(int);
-        reject(new Error("Job wait "));
+        logger.warn(`Job ${jobId} timed out after ${actualTimeout/1000} seconds`);
+        reject(new Error(`Job wait timeout after ${actualTimeout/1000} seconds`));
       } else {
-        const state = await getScrapeQueue().getJobState(jobId);
-        if (state === "completed") {
-          clearInterval(int);
-          resolve((await getScrapeQueue().getJob(jobId))!.returnvalue);
-        } else if (state === "failed") {
-          // console.log("failed", (await getScrapeQueue().getJob(jobId)).failedReason);
-          const job = await getScrapeQueue().getJob(jobId);
-          if (job && job.failedReason !== "Concurrency limit hit") {
+        try {
+          const state = await getScrapeQueue().getJobState(jobId);
+          if (state === "completed") {
             clearInterval(int);
-            reject(job.failedReason);
+            resolve((await getScrapeQueue().getJob(jobId))!.returnvalue);
+          } else if (state === "failed") {
+            const job = await getScrapeQueue().getJob(jobId);
+            if (job && job.failedReason !== "Concurrency limit hit") {
+              clearInterval(int);
+              reject(job.failedReason);
+            }
           }
+        } catch (error) {
+          // Better error handling for Redis errors
+          logger.error(`Error checking job state: ${error.message}`, { jobId });
+          // Don't reject here, just continue polling
         }
       }
-    }, 250);
+    }, 500); // Increased from 250ms to 500ms
   });
 }

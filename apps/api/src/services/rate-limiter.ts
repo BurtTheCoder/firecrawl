@@ -2,28 +2,30 @@ import { RateLimiterRedis } from "rate-limiter-flexible";
 import { PlanType, RateLimiterMode } from "../../src/types";
 import Redis from "ioredis";
 
+// Optimized concurrency limits for t2.xlarge instance (reduced by ~60%)
+// t2.xlarge has 4 vCPUs and 16 GB RAM, so need to be conservative with concurrent operations
 export const CONCURRENCY_LIMIT: Omit<Record<PlanType, number>, ""> = {
-  free: 2,
-  hobby: 5,
-  starter: 50,
-  standard: 50,
-  standardNew: 50,
-  standardnew: 50,
-  scale: 100,
-  growth: 100,
-  growthdouble: 100,
-  etier2c: 300,
-  etier1a: 200,
-  etier2a: 300,
-  etierscale1: 150,
-  etierscale2: 200,
-  testSuite: 200,
-  devB: 120,
-  etier2d: 250,
-  manual: 200,
-  extract_starter: 20,
-  extract_explorer: 100,
-  extract_pro: 200
+  free: 1,           // From 2
+  hobby: 2,          // From 5
+  starter: 20,       // From 50
+  standard: 20,      // From 50
+  standardNew: 20,   // From 50
+  standardnew: 20,   // From 50
+  scale: 40,         // From 100
+  growth: 40,        // From 100
+  growthdouble: 40,  // From 100
+  etier2c: 120,      // From 300
+  etier1a: 80,       // From 200
+  etier2a: 120,      // From 300
+  etierscale1: 60,   // From 150
+  etierscale2: 80,   // From 200
+  testSuite: 80,     // From 200
+  devB: 50,          // From 120
+  etier2d: 100,      // From 250
+  manual: 80,        // From 200
+  extract_starter: 8,  // From 20
+  extract_explorer: 40, // From 100
+  extract_pro: 80    // From 200
 };
 
 const RATE_LIMITS = {

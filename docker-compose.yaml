@@ -46,6 +46,15 @@ x-common-env: &common-env
   SEARXNG_CATEGORIES: ${SEARXNG_CATEGORIES}
 
 services:
+  tinyproxy:
+    image: dannydirect/tinyproxy:latest
+    ports:
+      - "3128:8888"  # Map host port 3128 to container port 8888
+    command: ANY  # Allow connections from any IP
+    networks:
+      - backend
+    restart: always
+
   playwright-service:
     build: apps/playwright-service-ts
     environment:
